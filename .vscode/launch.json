@@ -7,11 +7,11 @@
       "request": "launch",
       "name": "Run All Jest Tests with Coverage",
       "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
-      "args": ["--testPathPattern=/tests", "--detectOpenHandles"],
+      "args": ["--runInBand", "--testPathPatterns=/tests", "--detectOpenHandles"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "env": {}
+      "env": { "NODE_OPTIONS": "--experimental-vm-modules" }
     },
     {
       "name": "build:prod",

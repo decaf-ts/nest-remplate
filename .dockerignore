@@ -1,8 +1,9 @@
-./**/*
-!./*.json
-!src/*
-!tests/*
-!workdocs/*
-!./.npmrc
-!gulpfile.js
-!jest.config.ts
+node_modules
+lib
+dist
+docs
+workdocs
+tests
+.git
+.env
+*token

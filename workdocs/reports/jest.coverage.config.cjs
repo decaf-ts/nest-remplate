@@ -21,7 +21,7 @@ module.exports = {
         filename: "test-report.html",
         openReport: true,
         expand: true,
-        pageTitle: "ts-workspace Test Report",
+        pageTitle: "nest-template Test Report",
         stripSkippedTest: true,
         darkTheme: true,
         enableMergeData: true,
@@ -31,10 +31,10 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      branches: 60,
-      functions: 81,
-      lines: 79,
-      statements: 77,
+      branches: 70,
+      functions: 85,
+      lines: 90,
+      statements: 90,
     },
   },
 };

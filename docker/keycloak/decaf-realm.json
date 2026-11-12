@@ -1,0 +1,209 @@
+{
+  "realm": "decaf",
+  "enabled": true,
+  "displayName": "Decaf Nest Template",
+  "accessTokenLifespan": 900,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      {
+        "name": "catalog-manager",
+        "description": "Full CRUD on Product"
+      },
+      {
+        "name": "customer",
+        "description": "Place and manage orders"
+      },
+      {
+        "name": "agent",
+        "description": "Support agent (Ticket, with namespace:support)"
+      },
+      {
+        "name": "reader",
+        "description": "List/query articles"
+      },
+      {
+        "name": "editor",
+        "description": "Create/update articles"
+      },
+      {
+        "name": "admin",
+        "description": "Delete articles"
+      },
+      {
+        "name": "manager",
+        "description": "Reports (with namespace:sales)"
+      },
+      {
+        "name": "namespace:support",
+        "description": "Scopes the user to the support namespace"
+      },
+      {
+        "name": "namespace:sales",
+        "description": "Scopes the user to the sales namespace"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "decaf-backend",
+      "name": "Decaf Nest Template",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "decaf-backend",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "catalog",
+      "enabled": true,
+      "email": "catalog@decaf.local",
+      "emailVerified": true,
+      "firstName": "Catalog",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "catalog",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "catalog-manager"
+      ]
+    },
+    {
+      "username": "customer",
+      "enabled": true,
+      "email": "customer@decaf.local",
+      "emailVerified": true,
+      "firstName": "Customer",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "customer",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "customer"
+      ]
+    },
+    {
+      "username": "agent",
+      "enabled": true,
+      "email": "agent@decaf.local",
+      "emailVerified": true,
+      "firstName": "Agent",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "agent",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "agent",
+        "namespace:support"
+      ]
+    },
+    {
+      "username": "reader",
+      "enabled": true,
+      "email": "reader@decaf.local",
+      "emailVerified": true,
+      "firstName": "Reader",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "reader",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "reader"
+      ]
+    },
+    {
+      "username": "editor",
+      "enabled": true,
+      "email": "editor@decaf.local",
+      "emailVerified": true,
+      "firstName": "Editor",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "editor",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "reader",
+        "editor"
+      ]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@decaf.local",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "reader",
+        "editor",
+        "admin"
+      ]
+    },
+    {
+      "username": "manager",
+      "enabled": true,
+      "email": "manager@decaf.local",
+      "emailVerified": true,
+      "firstName": "Manager",
+      "lastName": "Demo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "manager",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "manager",
+        "namespace:sales"
+      ]
+    }
+  ]
+}

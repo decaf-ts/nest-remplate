@@ -1,10 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Integration Tests" type="JavaScriptTestRunnerJest" folderName="tests">
+  <configuration default="false" name="E2E Tests" type="JavaScriptTestRunnerJest" folderName="tests">
     <node-interpreter value="project" />
     <jest-package value="$PROJECT_DIR$/node_modules/jest" />
     <working-dir value="$PROJECT_DIR$" />
-    <jest-options value="--testPathPattern=&quot;/tests/integration&quot; --detectOpenHandles" />
-    <envs />
+    <jest-options value="--runInBand --testPathPatterns=&quot;/tests/e2e&quot; --detectOpenHandles" />
+    <envs>
+      <env name="NODE_OPTIONS" value="--experimental-vm-modules" />
+    </envs>
     <scope-kind value="ALL" />
     <method v="2" />
   </configuration>

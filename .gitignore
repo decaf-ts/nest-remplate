@@ -19,4 +19,5 @@
 /.dockertoken
 /.confluence-token
 /node_modules
-!.gitkeep
+.env
+!.env.example

@@ -1,0 +1,50 @@
+# Local development stack for @decaf-ts/nest-template.
+#
+#   npm run keycloak:up          # Keycloak only (run the API with `npm run start:dev`)
+#   docker compose -f docker/docker-compose.yml up -d --build   # Keycloak + API
+#
+# Keycloak admin console: http://localhost:8180 (admin/admin)
+# Realm `decaf` is imported from ./keycloak/decaf-realm.json with demo users whose
+# password equals their username (catalog, customer, agent, reader, editor, admin, manager).
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2
+    command: start-dev --import-realm
+    ports:
+      - "8180:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    volumes:
+      - ./keycloak/decaf-realm.json:/opt/keycloak/data/import/decaf-realm.json:ro
+    healthcheck:
+      # the keycloak image ships without curl/wget: probe the management port over /dev/tcp
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      secrets:
+        - TOKEN
+    profiles: ["api"]
+    ports:
+      - "3000:3000"
+    environment:
+      KEYCLOAK__URL: http://keycloak:8080
+      KEYCLOAK__REALM: decaf
+      KEYCLOAK__CLIENT_ID: decaf-backend
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+secrets:
+  TOKEN:
+    environment: NPM_TOKEN

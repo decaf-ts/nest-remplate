@@ -1,21 +1,23 @@
+/** @type {import('jest').Config} */
 const config = {
   verbose: true,
-  // eslint-disable-next-line no-undef
   rootDir: __dirname,
-  transform: { "^.+\\.ts$": "ts-jest" },
+  // ESM app: ts-jest emits ESM, jest runs it with --experimental-vm-modules (set by the npm scripts)
+  extensionsToTreatAsEsm: [".ts"],
+  transform: {
+    "^.+\\.ts$": ["ts-jest", { tsconfig: "tsconfig.json", useESM: true }],
+  },
   testEnvironment: "node",
-  testRegex: "/tests/.*\\.(test|spec)\\.(ts|tsx)$",
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  testRegex: "/tests/.*\\.(test|spec|e2e)\\.ts$",
+  testPathIgnorePatterns: ["/node_modules/", "/tests/trivy-fixture/"],
+  moduleFileExtensions: ["ts", "js", "json", "node"],
+  testTimeout: 60000,
+  setupFiles: ["<rootDir>/tests/setup.ts"],
   collectCoverage: false,
   coverageDirectory: "./workdocs/reports/coverage",
-  collectCoverageFrom: [
-    "src/**/*.{js,jsx,ts,tsx}",
-    "!src/bin",
-    "!src/**/*.stories.{js,jsx,ts,tsx}",
-  ],
+  collectCoverageFrom: ["src/**/*.ts", "!src/main.ts"],
   reporters: ["default"],
   watchman: false,
 };
 
-// eslint-disable-next-line no-undef
 module.exports = config;

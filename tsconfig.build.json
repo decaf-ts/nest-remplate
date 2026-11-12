@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    /* `baseUrl` makes the Nest CLI's SWC builder resolve imports fully, adding the `.js`
+       extensions Node's ESM loader needs (sources stay extensionless). TS 6 deprecates
+       `baseUrl`; `ignoreDeprecations` keeps it working until TS 7. */
+    "baseUrl": "./",
+    "ignoreDeprecations": "6.0",
+    "outDir": "lib",
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

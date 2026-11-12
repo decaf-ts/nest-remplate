@@ -1,11 +1,34 @@
 @startuml
+title Request authentication and live events
 
-[*] --> State1 : moves into state 1
-State1 --> State2 : moves into state 2
-State1 --> State3 : moves into state 3
+actor "Client\n(HttpAdapter)" as Client
+participant "AuthMiddleware\n(for-nest)" as MW
+participant "AuthInterceptor\n(for-nest)" as AI
+participant "AppAuthHandler\n(Keycloak)" as AH
+participant "jwt service\n(@decaf-ts/crypto)" as JWT
+participant "Keycloak\nJWKS" as KC
+participant "Generated model\ncontroller" as Ctrl
+participant "Repository /\nAdapter" as Repo
+participant "Events\n(/events SSE)" as SSE
 
-State3 --> State2: moves into state 2
-
-State2 --> [*]: end state
-
+Client -> MW : POST /product\nAuthorization: Bearer <token>
+MW -> AH : prime(request, ctx)\n(decode: user, roles, namespaces)
+MW -> AI
+AI -> AH : authorize(route roles/namespaces,\nmodel @roles/@namespace)
+AH -> JWT : decodeAuthToken(token)
+JWT -> KC : GET /realms/<realm>/protocol/openid-connect/certs\n(cached)
+KC --> JWT : JWKS
+JWT --> AH : verified payload
+AH -> AH : validate roles & namespaces
+alt missing token / invalid / missing claims
+  AH --> Client : 401
+else authorized
+  AI -> AI : request-to-context transformer\n(user -> UUID)
+  AI -> Ctrl
+  Ctrl -> Repo : create(model) — @createdBy = user
+  Repo --> Ctrl : record
+  Ctrl --> Client : 201 record
+  Repo -> SSE : observers: [Product, create, id]
+  SSE --> Client : data: ["Product","create","ESP-001",...]
+end
 @enduml

@@ -1,9 +1,12 @@
 .github
-.run
+.idea
 .vscode
-/bin
-/src
+.run
+.env
+.env.example
+/docker
 /docs
+/src
 /tests
 /workdocs
 *token
@@ -14,7 +17,8 @@
 .prettierrc
 .snyk
 Dockerfile
-eslint.config.js
-gulpfile.js
-jest.config.ts
+eslint.config.mjs
+jest.config.cjs
+jsr.json
 tsconfig.json
+tsconfig.build.json

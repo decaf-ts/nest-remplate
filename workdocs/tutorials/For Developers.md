@@ -55,20 +55,15 @@ The repository exposes the following npm scripts:
 
 #### Build and Quality
 
-- `build` – runs `npx build-scripts --dev` to produce development builds in `lib` and `dist`.
-- `build:prod` – runs `npx build-scripts --prod` to generate optimized production builds.
+- `build` – `nest build`: the Nest CLI type-checks `src` and compiles it to `lib` with its SWC builder (ES modules, source maps), adding the `.js` extensions Node needs to the extensionless imports (see `nest-cli.json` and `tsconfig.build.json`).
+- `build:prod` – alias of `build`.
+- `start` – runs the compiled application (`node lib/main.js`).
+- `start:dev` / `start:debug` – builds and runs the application with `.env` loaded (and the inspector, for `start:debug`).
+- `keycloak:up` / `keycloak:down` – starts/stops the local Keycloak (realm `decaf`) from `docker/docker-compose.yml`.
 - `lint` – executes ESLint across the repository.
 - `lint-fix` – runs ESLint with `--fix` to automatically resolve issues when possible.
-- `prepare-pr` – runs documentation, test, readme refresh, linting, production build, and coverage ahead of opening a pull request.
-
-#### Repository AI Automation (via Codex)
-
-- `repo:init` – launches the Codex repository initialization workflow for this project.
-- `repo:setup` – runs the general setup Codex flow using the prompts in `.codex/prompts`.
-- `repo:doc` – refreshes documentation via the Codex documentation prompts.
-- `repo:tests` – generates or updates tests through the Codex testing flow.
-- `repo:readme` – regenerates the README with the Codex readme prompt.
-- `repo:pr` – sequentially executes `repo:doc`, `repo:tests`, and `repo:readme`.
+- `typecheck` – type-checks `src` and `tests` (ts-jest does not).
+- `prepare-pr` – runs linting, type-checking, production build, coverage and documentation ahead of opening a pull request.
 
 #### Documentation Assets
 
@@ -80,22 +75,19 @@ The repository exposes the following npm scripts:
 #### Docker
 
 - `docker:login` – authenticates against `ghcr.io` using registry credentials resolved via `decaf utils credentials`.
-- `docker:build` – convenience alias that delegates to `docker:build-base`.
-- `docker:build-base` – builds the base container image with BuildKit using the version from `package.json`.
-- `docker:publish` – convenience alias that delegates to `docker:publish-base`.
-- `docker:publish-base` – pushes the versioned and `latest` Docker images to the GHCR registry.
+- `docker:build` – builds the application image (`ghcr.io/decaf-ts/nest-template:<version>` and `:latest`).
+- `docker:publish` – pushes the versioned and `latest` images.
 
 ### Tests
 
-All automated test scripts live in `package.json`:
+All automated test scripts live in `package.json` (see the [testing guide](./Testing.md)):
 
-- `test` – default entry point; forwards directly to `test:all`.
-- `test:unit` – runs Jest against files in `tests/unit`.
-- `test:integration` – runs Jest against files in `tests/integration`.
+- `test` – default entry point; forwards to `test:all`.
+- `test:unit` – runs Jest against `tests/unit`.
+- `test:e2e` (alias `test:integration`) – runs the end-to-end suites under `tests/e2e` (in band).
 - `test:all` – executes the entire Jest test suite under `tests`.
-- `test:dist` – runs the full suite twice, once against the compiled `lib` output and once against the `dist` bundle (via the `TEST_TARGET` environment variable).
 - `test:circular` – checks the source for circular dependencies using `dpdm`.
-- `prepare-it-tests` – no-op hook called by the shared CI workflows (`npm run prepare-it-tests --if-present`) before any test/coverage run; repositories whose integration tests need backing infrastructure implement it to boot that infra.
+- `prepare-it-tests` – hook called by the shared CI workflows before any test/coverage run. It is a no-op here: the e2e suites are self-contained.
 - `coverage` – wipes previous coverage JSON files and runs the full test suite with the coverage-specific Jest config to emit reports and badges.
 
 ## Linting
@@ -112,19 +104,10 @@ Please configure your IDE to recognize these files and perform automatic validat
 
 ## Testing
 
-Preconfigured Jest-based testing:
+See the [testing guide](./Testing.md).
 
-- `npm run test` – alias for `test:all`.
-- `npm run test:unit` – executes unit tests under `tests/unit`.
-- `npm run test:integration` – executes integration tests under `tests/integration`.
-- `npm run test:dist` – re-runs the suite against the compiled `lib` and `dist` outputs.
-- `npm run test:circular` – checks for circular dependencies.
-- `npm run coverage` – stores coverage and test reports under `workdocs/reports`.
-- Coverage and test results become part of the exported docs.
-- Ignores `cli.ts` from coverage since that is an executable file.
-- Uses `jest.config.ts` as the base config.
-- Uses `workdocs/reports/jest.coverage.config.ts` for coverage-specific settings.
-- Defines the coverage threshold in `workdocs/reports/jest.coverage.config.ts`.
+- `jest.config.cjs` is the base config (ts-jest, `tests/setup.ts` quiets the decaf logger).
+- `workdocs/reports/jest.coverage.config.cjs` adds coverage, the junit/html reporters and the thresholds.
 
 ## Documentation
 
@@ -217,92 +200,54 @@ When the `-no-ci` flag is passed then you can:
   - you have you publishing properly configured in `npmrc` and `package.json`;
   - The token for any special access required is resolved via `decaf utils credentials`;
 
-### AI
-
-#### codex
-This repository comes prebuilt with codex support. It will use the prompts and configurations in the `.codex` folder to provide AI assistance.
-To sync its prompts, run the `npm run sync-codex` command.
-Prompts under `./.codex/prompts` are:
-- `update-readme.md` - will update the readme file with a summary, detailed description, and examples of use for all identified elements in the code and tests;
-- `bulk-tests.md` - will create tests until a certain coverage is reached;
-- `repo-setup.md` - will ensure the repository is properly setup with correct badges, scripts, and documentation;
-- `update-dependencies.md` - will update all dependencies to their latest versions, taking care of any breaking changes;
-- `doc.md` - will setup a documentation role;
-- `file.md` - will document the file;
-- `bulk-docs.md` - will document all files in the `src` folder;
-
-`AGENTS.md` can also be found in the `.codex` folder, describing how to use agents with this repository.
-
 ### Repository Structure
 
 ```
 repository-root
 │
-│   .confluence-token               <-- stores confluence access token
-│   .dockerignore                   <-- Defines files by docker in the build image
-│   .dockeruser                     <-- stores docker registry user
-│   .dockertoken                    <-- stores docker registry access token
-│   .gitignore                      <-- Defines files ignored to git
+│   .env.example                    <-- documented environment (copy to .env)
 │   .gitlab-ci.yml                  <-- CI behaviour for gitlab
-│   .npmignore                      <-- Defines files ignored by npm
-│   .nmprc                          <-- Defines the Npm registry for this package
-│   .nmptoken                       <-- Defines access token for the Npm registry for this package
-│   .prettierrc                     <-- style definitions for the project
-│   .snyk                           <-- vulnerability scan (via snyk) config
-│   .token                          <-- token for dependencies in private registries
-│   .eslint.config.js               <-- linting for the project
-│   jest.config.ts                  <-- Tests Configuration file
-│   LICENCE.md                      <-- Licence disclamer
+│   Dockerfile                      <-- production image (node lib/main.js)
+│   eslint.config.mjs               <-- linting for the project
+│   jest.config.cjs                 <-- Tests Configuration file
 │   package.json
-│   package-lock.json
 │   README.md                       <-- Readme File dynamically compiled from 'workdocs' via the 'docs' npm script
-│   tsconfig.json                   <-- Typescript config file.
+│   tsconfig.json                   <-- Typescript config (src + tests)
+│   tsconfig.build.json             <-- Typescript build config (src -> lib)
 │
-└───.codex
-│   │   ...                         <-- codex prompts and configs
+└───.github                         <-- github workflows and templates
+└───.idea / .vscode                 <-- IDE run configurations
 │
-└───.github
-│   │   ...                         <-- github workflows and templates
+└───docker
+│   │   docker-compose.yml          <-- local Keycloak (+ the API with the `api` profile)
+│   └───keycloak/decaf-realm.json   <-- demo realm: roles, namespace roles, client, users
 │
-└───.idea
-│   │   ...                         <-- IDE run scripts for Jetbrains IDEs
-│
-│└───.vscode
-│   │   ...                         <-- IDE run scripts and configs for VSCode(ium)
-│
-└───bin
-│   │───tag_release.sh             <-- Script to help with releases
-│   └───sync-codex.sh              <-- Script to update codex prompts from reporitory ones
-└───dist
-│   │   ...                         <-- Dinamically generated folder containing the bundles for distribution
-│
-└───docs
-│   │   ...                         <-- Dinamically generated folder, containing the compiled documentation for this repository. generated via the 'docs' npm script
-│
-└───lib
-│   |   ...                         <-- Dinamically generated folder containing the compiled code
+└───lib                             <-- compiled code (generated)
 │
 └───src
-│   │   ...                         <-- Source code for this repository
+│   │   main.ts                     <-- entrypoint
+│   │   bootstrap.ts                <-- createApp(): Nest + NestBootstraper
+│   │   app.module.ts               <-- AppModule.forRoot(): DecafModule, auth, controllers
+│   │   seed.ts                     <-- reference data
+│   └───auth                        <-- Keycloak handler, jwt service, roles, AuthModule
+│   └───config                      <-- typed environment
+│   └───controllers                 <-- custom controllers
+│   └───models                      <-- demo models
+│   └───persistence                 <-- adapter bootstrap (RAM)
 │
 └───tests
-│   │───bundling                    <-- Tests the result of the produced bundle
-│   │───unit                        <-- Unit tests
-│   └───integration                 <-- Integration tests
+│   │   setup.ts                    <-- jest setup (log level)
+│   └───unit                        <-- unit tests
+│   └───e2e                         <-- end-to-end suites (HttpAdapter) + harness
 │
 └───workdocs                        <-- Folder with all pre-compiled documentation
     │───assets                      <-- Documentation asset folder
     │───confluence                  <-- folder containing specific documentation to be synced with a confluence page
     │───drawings                    <-- Drawio drawings that are converted to the resources folder dynamically
-    │───reports                     <-- Folder storing generated content (compiled uml, drawio, test reports, etc)
-    │   └───coverage                <-- Auto generated coverage results (report ready html)
-    │   └───data                    <-- folder used as temp while genrating reports wiht attachements
-    │   └───html                    <-- test results (jest-html-reporters) complete test report with attachements
-    │   └───junit                   <-- test results (junit xml)
-    │   └───jest.coverage.config.ts <-- jest config collecting coverage and exporting test results (extends base config)
+    │───reports                     <-- generated test reports and coverage (+ jest.coverage.config.cjs)
     │───resources                   <-- Folder storing generated content (compiled uml, drawio, etc)
-    │───tutorials                   <-- Tutorial folder (will show up on tutorial section in generated documentation)
-    │───uml                         <-- folder containing puml files to be compiled along with the documentation
+    │───tutorials                   <-- Tutorials (Authentication, Live Events, Testing, ...)
+    │───uml                         <-- PlantUML diagrams
     │   ...                         <-- Categorized *.md files that are merged to generate the final readme (via md compile)
     │   jsdocs.json                 <-- jsdoc Documentation generation configuration file
     │   Readme.md                   <-- Entry point to the README.md (will import other referenced md files)
@@ -343,7 +288,6 @@ Common commands for builds, tests, and documentation generation are available in
  - Jest integration:
    - `tests/Unit Tests` - Runs all unit tests (analog to `test:unit`)
    - `tests/Integration Tests` - Runs all integration tests (analog to `test:integration`)
-   - `tests/Bundling Tests` - Runs the dist checks for compiled artifacts (analog to `test:dist`)
    - `All Tests` - Runs all tests (analog to `test:all`)
 
  - Node integration:
@@ -355,10 +299,9 @@ Common commands for builds, tests, and documentation generation are available in
    - `repo/drawings` - compiles draw.io files to png (one per page) (analog to `drawings`)
    - `repo/flash-forward` - updates all dependencies to latest versions (analog to `flash-forward`)
   - `repo/update-scripts` - runs cli to update repo's configs (CI, Doc boilerplate, Linting, Style, etc) via its template repository (analog to `update-scripts`)
-   - `build:prod` - `build`s code in production mode (minify, uglify, doc extraction, and no source-map for bundled production)
-   - `build` - `build`s code in development mode
+   - `build` - compiles `src` to `lib`
 
 ## Considerations
 
-- Setup for node 22, but will work at least with 16;
-- Requires docker to build documentation (drawings and PlantUML)
+- The app is an ES module (`"type": "module"`, NestJS 12 is ESM-only): imports are extensionless (`moduleResolution: bundler`) and `nest build` adds the extensions to the output. Jest needs `--experimental-vm-modules`, which the npm scripts set. Node.js >= 20.
+- Requires docker for the local Keycloak and to build documentation (drawings and PlantUML).
